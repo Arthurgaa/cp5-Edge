@@ -1,12 +1,11 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <DHT.h>
-#include <LiquidCrystal_I2C.h>
 
 // Configurações - variáveis editáveis
 const char* default_SSID = "Wokwi-GUEST"; // Nome da rede Wi-Fi
 const char* default_PASSWORD = ""; // Senha da rede Wi-Fi
-const char* default_BROKER_MQTT = "46.17.108.131"; // IP do Broker MQTT
+const char* default_BROKER_MQTT = "4.228.225.67"; // IP do Broker MQTT
 const int default_BROKER_PORT = 1883; // Porta do Broker MQTT
 const char* default_TOPICO_SUBSCRIBE = "/TEF/sensor001/cmd"; // Tópico MQTT de escuta
 const char* default_TOPICO_PUBLISH_1 = "/TEF/sensor001/attrs"; // Tópico MQTT de envio de informações combinadas
@@ -27,7 +26,6 @@ const char* topicPrefix = "sensor001";
 
 // Inicialização dos objetos
 DHT dht(DHTPIN, DHTTYPE);
-LiquidCrystal_I2C lcd(0x27, 16, 2); // Endereço I2C do LCD, colunas, linhas
 WiFiClient espClient;
 PubSubClient MQTT(espClient);
 char EstadoSaida = '0';
@@ -58,8 +56,6 @@ void setup() {
     initMQTT();
     pinMode(LDR_PIN, INPUT);
     dht.begin();
-    lcd.init();
-    lcd.backlight();
     delay(5000);
     MQTT.publish(default_TOPICO_PUBLISH_1, "s|on");
 }
@@ -198,18 +194,6 @@ void handleSensors() {
     snprintf(ldrPayload, sizeof(ldrPayload), "%.2f", ldrPercentage);
     MQTT.publish(default_TOPICO_LDR, ldrPayload);
 
-    // Mostra os dados no display LCD
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Temp:");
-    lcd.print(t);
-    lcd.print("C");
-
-    lcd.setCursor(0, 1);
-    lcd.print("Umid:");
-    lcd.print(h);
-    lcd.print("%");
-
     // Imprime os dados no Serial Monitor
     Serial.println("Dados dos sensores:");
     Serial.print("Temperatura: ");
@@ -235,13 +219,3 @@ void loop() {
         handleSensors();
     }
 }
-
-
-
-
-
-
-
-
-
-
