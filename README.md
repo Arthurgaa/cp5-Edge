@@ -50,9 +50,7 @@ O dashboard, desenvolvido em Python, exibe dinamicamente os dados históricos co
 - Sensores: O DHT22 mede temperatura e umidade, enquanto o LDR monitora a luminosidade. Todos os dados são enviados para o ESP32.
 - Buzzer: É ativado se:
 
-A temperatura estiver abaixo de 14°C ou acima de 17°C.
-A umidade estiver abaixo de 60% ou acima de 80%.
-A luminosidade estiver abaixo de 50 ou acima de 100.
+A temperatura estiver abaixo de 14°C ou acima de 17°C. | A umidade estiver abaixo de 60% ou acima de 80%. | A luminosidade estiver abaixo de 50 ou acima de 100.
 
 - Dashboard: Exibe dados em tempo real e tendências históricas dos sensores. O dashboard é atualizado dinamicamente para ajudar na tomada de decisões em tempo real e também exibe gráficos históricos.
 
