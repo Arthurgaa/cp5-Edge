@@ -1,6 +1,6 @@
 # CP5 - Computação de Borda com IoT para Monitoramento de Vinhedos
 
-Este projeto faz parte do **Check Point 5** do Challenge Sprint de IoT. O foco está no monitoramento de vinhedos usando dispositivos IoT conectados a um dashboard web dinâmico para análise de dados em tempo real, aproveitando a Computação de Borda e o FIWARE.
+Este projeto faz parte do **Check Point 5** de IoT. O foco está no monitoramento de vinhedos usando dispositivos IoT conectados a um dashboard web dinâmico para análise de dados em tempo real, aproveitando a Computação de Borda e o FIWARE.
 
 ## Visão Geral do Projeto
 
@@ -58,5 +58,6 @@ A temperatura estiver abaixo de 14°C ou acima de 17°C. | A umidade estiver aba
 - Arthur Galvão Alves - RM554462
 - Eduardo da Silva Lima - RM554804
 - Felipe Braunstein e Silva - RM554483
+- Felipe do Nascimento Fernandes - RM554598
 - Jefferson Junior Alvarez Urbina - RM558497
-- Felipe do Nascimento Fernandez - RM554598
+
