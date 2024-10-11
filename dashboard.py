@@ -1,85 +1,132 @@
 import dash
 from dash import dcc, html
-from dash.dependencies import Input, Output
-import paho.mqtt.client as mqtt
-import json
-import threading
-
-# Variáveis globais para armazenar os dados dos sensores
-temperature = 0
-humidity = 0
-ldr = 0
-
-# Função chamada quando uma mensagem MQTT é recebida
-def on_message(client, userdata, msg):
-    global temperature, humidity, ldr
-    data = json.loads(msg.payload.decode())  # Decodifica a mensagem JSON
-    temperature = data.get('temperature', 0)
-    humidity = data.get('humidity', 0)
-    ldr = data.get('ldr', 0)
-    print(f"Recebido -> Temperatura: {temperature}, Umidade: {humidity}, Luminosidade: {ldr}")
-
-# Configuração do cliente MQTT
-def mqtt_client():
-    client = mqtt.Client()
-    client.on_message = on_message
-    client.connect("46.17.108.131", 1883, 60)  # Conecta ao broker MQTT
-    client.subscribe("/TEF/sensor001/attrs")   # Inscreve-se no tópico MQTT
-    client.loop_forever()                      # Inicia o loop para receber mensagens
-
-# Inicia o cliente MQTT em uma thread separada
-mqtt_thread = threading.Thread(target=mqtt_client)
-mqtt_thread.daemon = True
-mqtt_thread.start()
-
-# Configuração do dashboard usando Dash
+from dash.dependencies import Input, Output, State
+import plotly.graph_objs as go
+import requests
+from datetime import datetime
+import pytz
+ 
+# Constants for IP and port
+IP_ADDRESS = "4.228.225.67"
+PORT_STH = 8666
+DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
+ 
+# Function to get luminosity data from the API
+def get_luminosity_data(lastN):
+    url = f"http://{IP_ADDRESS}:{PORT_STH}/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:001/attributes/luminosity?lastN={lastN}"
+    headers = {
+        'fiware-service': 'smart',
+        'fiware-servicepath': '/'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        try:
+            values = data['contextResponses'][0]['contextElement']['attributes'][0]['values']
+            return values
+        except KeyError as e:
+            print(f"Key error: {e}")
+            return []
+    else:
+        print(f"Error accessing {url}: {response.status_code}")
+        return []
+ 
+# Function to convert UTC timestamps to Lisbon time
+def convert_to_lisbon_time(timestamps):
+    utc = pytz.utc
+    lisbon = pytz.timezone('Europe/Lisbon')
+    converted_timestamps = []
+    for timestamp in timestamps:
+        try:
+            timestamp = timestamp.replace('T', ' ').replace('Z', '')
+            converted_time = utc.localize(datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')).astimezone(lisbon)
+        except ValueError:
+            # Handle case where milliseconds are not present
+            converted_time = utc.localize(datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')).astimezone(lisbon)
+        converted_timestamps.append(converted_time)
+    return converted_timestamps
+ 
+# Set lastN value
+lastN = 10  # Get 10 most recent points at each interval
+ 
 app = dash.Dash(__name__)
-
-# Layout do dashboard
+ 
 app.layout = html.Div([
-    html.H1("Monitoramento de Sensores em Tempo Real"),
-    
-    # Seção para exibir as métricas ao vivo
-    html.Div(id='live-update-text', style={'fontSize': 20}),
-    
-    # Gráfico que será atualizado em tempo real
-    dcc.Graph(id='live-update-graph'),
-    
-    # Intervalo para atualizar o dashboard a cada 1 segundo
+    html.H1('Luminosity Data Viewer'),
+    dcc.Graph(id='luminosity-graph'),
+    # Store to hold historical data
+    dcc.Store(id='luminosity-data-store', data={'timestamps': [], 'luminosity_values': []}),
     dcc.Interval(
         id='interval-component',
-        interval=1*1000,  # 1000 milissegundos = 1 segundo
+        interval=10*1000,  # in milliseconds (10 seconds)
         n_intervals=0
     )
 ])
-
-# Callback para atualizar o texto com as últimas leituras dos sensores
-@app.callback(Output('live-update-text', 'children'),
-              Input('interval-component', 'n_intervals'))
-def update_metrics(n):
-    return [
-        html.P(f"Temperatura: {temperature:.2f} °C"),
-        html.P(f"Umidade: {humidity:.2f} %"),
-        html.P(f"Luminosidade (LDR): {ldr:.2f} %")
-    ]
-
-# Callback para atualizar o gráfico em tempo real
-@app.callback(Output('live-update-graph', 'figure'),
-              Input('interval-component', 'n_intervals'))
-def update_graph_live(n):
-    # Define os dados do gráfico de barras
-    fig = {
-        'data': [
-            {'x': ['Temperatura'], 'y': [temperature], 'type': 'bar', 'name': 'Temperatura'},
-            {'x': ['Umidade'], 'y': [humidity], 'type': 'bar', 'name': 'Umidade'},
-            {'x': ['Luminosidade'], 'y': [ldr], 'type': 'bar', 'name': 'Luminosidade'}
-        ],
-        'layout': {
-            'title': 'Dados dos Sensores em Tempo Real'
-        }
-    }
-    return fig
-
-# Inicia o servidor do dashboard
+ 
+@app.callback(
+    Output('luminosity-data-store', 'data'),
+    Input('interval-component', 'n_intervals'),
+    State('luminosity-data-store', 'data')
+)
+def update_data_store(n, stored_data):
+    # Get luminosity data
+    data_luminosity = get_luminosity_data(lastN)
+ 
+    if data_luminosity:
+        # Extract values and timestamps
+        luminosity_values = [float(entry['attrValue']) for entry in data_luminosity]  # Ensure values are floats
+        timestamps = [entry['recvTime'] for entry in data_luminosity]
+ 
+        # Convert timestamps to Lisbon time
+        timestamps = convert_to_lisbon_time(timestamps)
+ 
+        # Append new data to stored data
+        stored_data['timestamps'].extend(timestamps)
+        stored_data['luminosity_values'].extend(luminosity_values)
+ 
+        return stored_data
+ 
+    return stored_data
+ 
+@app.callback(
+    Output('luminosity-graph', 'figure'),
+    Input('luminosity-data-store', 'data')
+)
+def update_graph(stored_data):
+    if stored_data['timestamps'] and stored_data['luminosity_values']:
+        # Calculate mean luminosity
+        mean_luminosity = sum(stored_data['luminosity_values']) / len(stored_data['luminosity_values'])
+ 
+        # Create traces for the plot
+        trace_luminosity = go.Scatter(
+            x=stored_data['timestamps'],
+            y=stored_data['luminosity_values'],
+            mode='lines+markers',
+            name='Luminosity',
+            line=dict(color='orange')
+        )
+        trace_mean = go.Scatter(
+            x=[stored_data['timestamps'][0], stored_data['timestamps'][-1]],
+            y=[mean_luminosity, mean_luminosity],
+            mode='lines',
+            name='Mean Luminosity',
+            line=dict(color='blue', dash='dash')
+        )
+ 
+        # Create figure
+        fig_luminosity = go.Figure(data=[trace_luminosity, trace_mean])
+ 
+        # Update layout
+        fig_luminosity.update_layout(
+            title='Luminosity Over Time',
+            xaxis_title='Timestamp',
+            yaxis_title='Luminosity',
+            hovermode='closest'
+        )
+ 
+        return fig_luminosity
+ 
+    return {}
+ 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, host=DASH_HOST, port=8050)
