@@ -22,6 +22,9 @@ O dashboard, desenvolvido em Python, exibe dinamicamente os dados históricos co
 - **wokwi-img.PNG**: Captura de tela da simulação configurada no Wokwi.
 - **wokwi.c++**: Código para configuração do ESP32 com os sensores conectados.
 
+ ##Arquitetura
+![alt text](cp5-Edge.drawio.png)
+
 ## Instalação
 
 ### Pré-requisitos
