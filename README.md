@@ -1,16 +1,16 @@
 # CP5 - Computação de Borda com IoT para Monitoramento de Vinhedos
 
-Este projeto faz parte do **Check Point 5** de IoT. O foco está no monitoramento de vinhedos usando dispositivos IoT conectados a um dashboard web dinâmico para análise de dados em tempo real, aproveitando a Computação de Borda e o FIWARE.
+Este projeto faz parte do Check Point 5 de IoT e foca no monitoramento de vinhedos usando dispositivos IoT conectados a um dashboard web dinâmico para análise de dados em tempo real, aproveitando a Computação de Borda e o FIWARE.
 
 ## Visão Geral do Projeto
 
-O sistema utiliza um **ESP32** conectado a múltiplos sensores para monitoramento de temperatura, umidade e luminosidade, simulando as condições do vinhedo. Um buzzer é ativado quando o ambiente sai das faixas pré-estabelecidas para temperatura, umidade e luminosidade.
+O sistema utiliza um ESP32 conectado a múltiplos sensores para monitoramento de temperatura, umidade e luminosidade, simulando as condições do vinhedo. O ESP32 coleta os dados dos sensores DHT22 e LDR e publica essas informações via MQTT em um broker, permitindo que as leituras sejam monitoradas em tempo real.
 
-O dashboard, desenvolvido em Python, exibe dinamicamente os dados históricos coletados pelos sensores, oferecendo aos gerentes de vinhedos uma visão abrangente do ambiente.
+O dashboard, desenvolvido em Python, exibe dinamicamente os dados históricos coletados pelos sensores, oferecendo uma visão abrangente das condições do ambiente, facilitando a tomada de decisões.
 
 ### Funcionalidades
 - **Monitoramento em tempo real** de temperatura, umidade e luminosidade.
-- **Sistema de alerta automático** via buzzer para condições críticas.
+- **Publicação automática** dos dados dos sensores a cada segundo.
 - **Dashboard web** para análise de dados históricos.
 - **Simulação usando Wokwi** para prototipagem da solução.
 
@@ -31,7 +31,7 @@ O dashboard, desenvolvido em Python, exibe dinamicamente os dados históricos co
 - ESP32
 - Sensor DHT22 (temperatura e umidade)
 - Sensor LDR (luminosidade)
-- Buzzer
+- Broker MQTT
 - Simulador Wokwi
 
 ### Passos
@@ -50,12 +50,16 @@ O dashboard, desenvolvido em Python, exibe dinamicamente os dados históricos co
 
 ## Como Funciona
 
-- Sensores: O DHT22 mede temperatura e umidade, enquanto o LDR monitora a luminosidade. Todos os dados são enviados para o ESP32.
-- Buzzer: É ativado se:
+- Sensores: O DHT22 mede temperatura e umidade, enquanto o LDR Monitora a luminosidade. Todos os dados são enviados via MQTT para o broker e, consequentemente, para o FIWARE.
 
-A temperatura estiver abaixo de 14°C ou acima de 17°C. | A umidade estiver abaixo de 60% ou acima de 80%. | A luminosidade estiver abaixo de 50 ou acima de 100.
+- Dashboard: O dashboard exibe dados em tempo real e tendências históricas dos sensores. Ele se conecta ao Orion Context Broker via FIWARE e exibe gráficos de temperatura, umidade e luminosidade, atualizados dinamicamente.
+  
+- MQTT: O ESP32 publica os dados dos sensores de temperatura, umidade e luminosidade a cada segundo nos seguintes tópicos MQTT:
+- Tópico de temperatura: /TEF/sensor001/t
+- Tópico de umidade: /TEF/sensor001/h
+- Tópico de luminosidade: /TEF/sensor001/l
 
-- Dashboard: Exibe dados em tempo real e tendências históricas dos sensores. O dashboard é atualizado dinamicamente para ajudar na tomada de decisões em tempo real e também exibe gráficos históricos.
+
 
 ## Integrantes
 - Arthur Galvão Alves - RM554462
