@@ -5,14 +5,14 @@
 // Configurações - variáveis editáveis
 const char* default_SSID = "Wokwi-GUEST"; // Nome da rede Wi-Fi
 const char* default_PASSWORD = ""; // Senha da rede Wi-Fi
-const char* default_BROKER_MQTT = "4.228.225.67"; // IP do Broker MQTT
+const char* default_BROKER_MQTT = "4.228.226.67"; // IP do Broker MQTT
 const int default_BROKER_PORT = 1883; // Porta do Broker MQTT
 const char* default_TOPICO_SUBSCRIBE = "/TEF/sensor001/cmd"; // Tópico MQTT de escuta
 const char* default_TOPICO_PUBLISH_1 = "/TEF/sensor001/attrs"; // Tópico MQTT de envio de informações combinadas
-const char* default_TOPICO_TEMP = "/TEF/sensor001/temperature"; // Tópico MQTT para temperatura
-const char* default_TOPICO_UMID = "/TEF/sensor001/humidity";    // Tópico MQTT para umidade
-const char* default_TOPICO_LDR = "/TEF/sensor001/ldr";          // Tópico MQTT para LDR
-const char* default_ID_MQTT = "fiware_sensor_001"; // ID MQTT
+const char* default_TOPICO_TEMP = "/TEF/sensor001/t"; // Tópico MQTT para temperatura
+const char* default_TOPICO_UMID = "/TEF/sensor001/h";    // Tópico MQTT para umidade
+const char* default_TOPICO_LDR = "/TEF/sensor001/l";          // Tópico MQTT para LDR
+const char* default_ID_MQTT = "fiware_001"; // ID MQTT
 const int default_D4 = 2; // Pino do LED onboard
 
 // Declaração da variável para o prefixo do tópico
